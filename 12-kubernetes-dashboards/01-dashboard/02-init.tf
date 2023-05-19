@@ -1,0 +1,14 @@
+//////////////////////////////
+// Remote states for import //
+//////////////////////////////
+
+data "terraform_remote_state" "eks" {
+  backend = "s3"
+  config = {
+    profile                 = "rmalenko"
+    shared_credentials_file = "~/.aws/credentials"
+    region                  = var.aws_region
+    bucket                  = "terragrunt-terraform-state-${var.account_name}-${var.aws_region}/"
+    key                     = "${var.env}/${var.aws_region}/12-EKS/02-eks/terraform.tfstate"
+  }
+}

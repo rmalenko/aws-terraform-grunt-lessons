@@ -1,0 +1,68 @@
+global:
+  resolve_timeout: 15m
+
+templates:
+  - /config/*.tmpl
+
+route:
+  receiver: devnull
+  group_by:
+    - alertname
+    # - job
+  # https://www.robustperception.io/whats-the-difference-between-group_interval-group_wait-and-repeat_interval
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification.
+  # This way ensures that you get multiple alerts for the same group that start
+  # firing shortly after another are batched together on the first
+  # notification.
+  group_wait: 60s
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 30s
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 1h
+
+  routes:
+    - receiver: "slack-alert-critical"
+      group_wait: 60s
+      group_interval: 30s
+      repeat_interval: 1h
+      continue: true
+      match:
+        severity: critical
+      # match_re:
+      #   severity: warning|critical
+
+    - receiver: "slack-alert-warning"
+      group_wait: 1h
+      group_interval: 1800s
+      repeat_interval: 6h
+      continue: true
+      match:
+        severity: warning
+      # match_re:
+      #   severity: info
+
+receivers:
+  - name: "slack-alert-critical"
+    slack_configs:
+      - api_url: "${api_url_critical}"
+        channel: "${critical_channel}"
+        send_resolved: true
+        icon_url: "https://avatars3.githubusercontent.com/u/3380462"
+        title: '{{ template "slack.title" . }}'
+        color: '{{ template "slack.color" . }}'
+        text: '{{ template "slack.text" . }}'
+
+  - name: "slack-alert-warning"
+    slack_configs:
+      - api_url: "${api_url_warning}"
+        channel: "${warning_channel}"
+        send_resolved: false
+        icon_url: "https://avatars3.githubusercontent.com/u/3380462"
+        title: '{{ template "slack.title" . }}'
+        color: '{{ template "slack.color" . }}'
+        text: '{{ template "slack.text" . }}'
+
+  - name: devnull

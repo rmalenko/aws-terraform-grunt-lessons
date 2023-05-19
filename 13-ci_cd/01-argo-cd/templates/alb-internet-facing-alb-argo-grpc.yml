@@ -1,0 +1,67 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${name_http_ingress}
+  namespace: ${namespace}
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: argo-cd
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/name: argocd-server
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    # alb.ingress.kubernetes.io/success-codes: 200,301,302,307
+    alb.ingress.kubernetes.io/conditions.argogrpc: >-
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName": "Content-Type", "values":["application/grpc"]}}]
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: >-
+      {"type":"redirect","redirectConfig":{"port":"443","protocol":"HTTPS","statusCode":"HTTP_301"}}
+    # external-dns.alpha.kubernetes.io/hostname: ${domain_name_public}
+    alb.ingress.kubernetes.io/certificate-arn: ${domain_certificate}
+    # alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/load-balancer-name: ${name_http_ingress}
+    alb.ingress.kubernetes.io/target-type: instance
+    # alb.ingress.kubernetes.io/target-type: ip # require to enable sticky sessions ,stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=60
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    alb.ingress.kubernetes.io/target-node-labels: ${tolerations_key}=${tolerations_value}
+    alb.ingress.kubernetes.io/tags: Environment=${tags_env},Restricted=false,Customer=customer,Project=ops,Name=${name_http_ingress}
+    alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true,idle_timeout.timeout_seconds=180
+
+spec:
+  ingressClassName: alb
+  tls:
+    - hosts:
+        - ${domain_name_public}
+  rules:
+    - host: ${domain_name_public}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ssl-redirect
+                port:
+                  name: use-annotation
+    - host: ${domain_name_public}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # name: argo-cd-argocd-server
+                name: argogrpc
+                port:
+                  number: 4433
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argo-cd-argocd-server
+                port:
+                  number: 443

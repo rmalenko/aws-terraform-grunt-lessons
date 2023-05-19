@@ -1,0 +1,49 @@
+{{ define "__alert_severity_prefix_title" -}}
+    {{ if ne .Status "firing" -}}
+    :ok_hand:
+    {{- else if eq .CommonLabels.severity "critical" -}}
+    :fire:
+    {{- else if eq .CommonLabels.severity "warning" -}}
+    :warning:
+    {{- else -}}
+    :question:
+    {{- end }}
+{{- end }}
+
+{{ define "slack.title" }}
+    {{ template "__alert_severity_prefix_title" . }} [{{ .Status | toUpper }}{{ if eq .Status "firing" }}: {{ .Alerts.Firing | len }}] {{ end }}  
+    {{- .GroupLabels.SortedPairs.Values | join " " }}
+        {{- if gt (len .CommonLabels) (len .GroupLabels) }} ({{- with .CommonLabels.Remove .GroupLabels.Names }}{{ .Values | join " " }}{{ end }})
+    {{ end }}
+{{ end }}
+
+{{/* Color of Slack attachment (appears as line next to alert )*/}}
+{{ define "slack.color" -}}
+    {{ if eq .Status "firing" -}}
+        {{ if eq .CommonLabels.severity "critical" -}}
+            danger
+        {{- else if eq .CommonLabels.severity "warning" -}}
+            warning
+        {{- else -}}
+            #439FE0
+        {{- end -}}
+    {{ else -}}
+    good
+    {{- end }}
+{{- end }}
+
+{{/* The test to display in the alert */}}
+{{ define "slack.text" }}
+    *Alert details:*
+    {{- range .Alerts }}
+        {{- if .Annotations.summary }}
+    *Alert:* {{ if .Labels.severity }} `{{ .Labels.severity }}`{{ end }} - {{ .Annotations.summary }}
+        {{- end }}
+        {{- if .Annotations.description }}
+    *Description:* {{ .Annotations.description }}
+        {{- end }}
+    *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+    {{- end }}
+{{- end }}

@@ -1,0 +1,63 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "annotations": {
+      "istio-injection": "enabled"
+    },
+    "creationTimestamp": "2022-05-19T08:04:03Z",
+    "deletionTimestamp": "2022-05-19T15:07:34Z",
+    "labels": {
+      "elbv2.k8s.aws/pod-readiness-gate-inject": "enabled",
+      "istio-injection": "enabled",
+      "kubernetes.io/metadata.name": "istio-system",
+      "label": "istio-system"
+    },
+    "name": "istio-system",
+    "resourceVersion": "214941",
+    "uid": "bb4a951f-a4f3-4654-948a-1c616c4bdcdd"
+  },
+  "spec": {
+    "finalizers": []
+  },
+  "status": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2022-05-19T15:07:40Z",
+        "message": "All resources successfully discovered",
+        "reason": "ResourcesDiscovered",
+        "status": "False",
+        "type": "NamespaceDeletionDiscoveryFailure"
+      },
+      {
+        "lastTransitionTime": "2022-05-19T15:07:40Z",
+        "message": "All legacy kube types successfully parsed",
+        "reason": "ParsedGroupVersions",
+        "status": "False",
+        "type": "NamespaceDeletionGroupVersionParsingFailure"
+      },
+      {
+        "lastTransitionTime": "2022-05-19T15:07:40Z",
+        "message": "All content successfully deleted, may be waiting on finalization",
+        "reason": "ContentDeleted",
+        "status": "False",
+        "type": "NamespaceDeletionContentFailure"
+      },
+      {
+        "lastTransitionTime": "2022-05-19T15:07:40Z",
+        "message": "Some resources are remaining: ingresses.networking.k8s.io has 1 resource instances, targetgroupbindings.elbv2.k8s.aws has 1 resource instances",
+        "reason": "SomeResourcesRemain",
+        "status": "True",
+        "type": "NamespaceContentRemaining"
+      },
+      {
+        "lastTransitionTime": "2022-05-19T15:07:40Z",
+        "message": "Some content in the namespace has finalizers remaining: elbv2.k8s.aws/resources in 1 resource instances, ingress.k8s.aws/resources in 1 resource instances",
+        "reason": "SomeFinalizersRemain",
+        "status": "True",
+        "type": "NamespaceFinalizersRemaining"
+      }
+    ],
+    "phase": "Terminating"
+  }
+}
